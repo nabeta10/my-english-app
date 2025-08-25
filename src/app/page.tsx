@@ -38,6 +38,9 @@ export default function Home() {
 
       const data = await response.json();
 
+      console.log("API Response status:", response.status);
+      console.log("API Response data:", data);
+
       if (response.ok) {
         const aiMessage: Message = {
           id: updatedMessages.length + 1,
@@ -46,7 +49,7 @@ export default function Home() {
         };
         setMessages([...updatedMessages, aiMessage]);
       } else {
-        throw new Error(data.error || "APIリクエストに失敗しました。");
+        throw new Error(data.error || data.details || "APIリクエストに失敗しました。");
       }
     } catch (error) {
       console.error("エラー:", error);

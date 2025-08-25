@@ -9,20 +9,45 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
+    // APIキーの存在確認
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY is not set");
+      return new Response(JSON.stringify({ 
+        error: "API key not configured" 
+      }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // ユーザーからのメッセージを受け取る
     const { message } = await req.json();
 
+    if (!message || message.trim() === "") {
+      return new Response(JSON.stringify({ 
+        error: "Message is required" 
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Sending request to OpenAI with message:", message);
+
     // OpenAI APIにリクエストを送信
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // より安定したモデルを使用
+      model: "gpt-4o-mini", // より新しい軽量モデルを試す
       messages: [
         { role: "system", content: "You are a friendly English conversation partner." },
         { role: "user", content: message },
       ],
+      max_tokens: 150,
+      temperature: 0.7,
     });
 
     // AIからの返答を取得
     const aiResponse = completion.choices[0].message.content;
+    console.log("OpenAI response:", aiResponse);
 
     // AIからの返答をフロントエンドに返す
     return new Response(JSON.stringify({ reply: aiResponse }), {
@@ -34,11 +59,23 @@ export async function POST(req) {
     console.error("Error calling OpenAI API:", error);
     console.error("Error details:", error.message);
     console.error("Error status:", error.status);
+    console.error("Error code:", error.code);
+    
+    let errorMessage = "Failed to fetch response from AI.";
+    
+    if (error.status === 401) {
+      errorMessage = "Invalid API key";
+    } else if (error.status === 429) {
+      errorMessage = "Rate limit exceeded. Please try again later.";
+    } else if (error.status === 403) {
+      errorMessage = "Access denied. Please check your API key permissions.";
+    }
+    
     return new Response(JSON.stringify({ 
-      error: "Failed to fetch response from AI.",
+      error: errorMessage,
       details: error.message 
     }), {
-      status: 500,
+      status: error.status || 500,
       headers: { "Content-Type": "application/json" },
     });
   }
