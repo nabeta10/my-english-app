@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // ★★★ この行を追加 ★★★
 
 import { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
