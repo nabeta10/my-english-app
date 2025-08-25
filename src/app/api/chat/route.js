@@ -34,6 +34,24 @@ export async function POST(req) {
 
     console.log("Sending request to OpenAI with message:", message);
 
+    // 一時的なモックレスポンス（OpenAI課金設定完了まで）
+    if (process.env.NODE_ENV === "development" || process.env.USE_MOCK === "true") {
+      console.log("Using mock response");
+      const mockResponses = [
+        "Hello! I'm your AI English conversation partner. How are you today?",
+        "That's interesting! Can you tell me more about that?",
+        "Great! Let's practice some English conversation. What would you like to talk about?",
+        "I understand. How was your day today?",
+        "That sounds wonderful! Keep practicing your English!"
+      ];
+      
+      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+      
+      return new Response(JSON.stringify({ reply: randomResponse }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // OpenAI APIにリクエストを送信
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // より新しい軽量モデルを試す
@@ -66,7 +84,7 @@ export async function POST(req) {
     if (error.status === 401) {
       errorMessage = "Invalid API key";
     } else if (error.status === 429) {
-      errorMessage = "Rate limit exceeded. Please try again later.";
+      errorMessage = "Rate limit exceeded or quota insufficient. Please check your OpenAI billing.";
     } else if (error.status === 403) {
       errorMessage = "Access denied. Please check your API key permissions.";
     }
