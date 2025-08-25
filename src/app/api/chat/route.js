@@ -14,7 +14,7 @@ export async function POST(req) {
 
     // OpenAI APIにリクエストを送信
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // ここで使用するAIモデルを指定
+      model: "gpt-3.5-turbo", // より安定したモデルを使用
       messages: [
         { role: "system", content: "You are a friendly English conversation partner." },
         { role: "user", content: message },
@@ -32,7 +32,12 @@ export async function POST(req) {
   } catch (error) {
     // エラーハンドリング
     console.error("Error calling OpenAI API:", error);
-    return new Response(JSON.stringify({ error: "Failed to fetch response from AI." }), {
+    console.error("Error details:", error.message);
+    console.error("Error status:", error.status);
+    return new Response(JSON.stringify({ 
+      error: "Failed to fetch response from AI.",
+      details: error.message 
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
